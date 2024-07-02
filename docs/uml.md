@@ -52,6 +52,14 @@ erDiagram
         uint endTime
         bool isApproved
     }
+    Stake {
+        uint stakeID PK
+        address staker FK
+        uint amount
+        uint startTime
+        uint endTime
+        bool isWithdrawn
+    }
     User ||--o{ LoanApplication : submits
     User ||--o{ Transaction : initiates
     User ||--o{ Transaction : receives
@@ -59,8 +67,9 @@ erDiagram
     User ||--o{ GovernanceToken : owns
     User ||--o{ FreezeProposal : proposes
     User ||--o{ UnfreezeProposal : proposes
+    User ||--o{ Stake : stakes
 ```
-## フローチャート
+
 ### issueStableCoin関数のフローチャート
 ```mermaid
 flowchart TD
@@ -75,6 +84,7 @@ flowchart TD
     I --> J[ガバナンストークンのfee分配]
     J --> K[処理完了]
 ```
+
 ### transfer関数のフローチャート
 ```mermaid
 flowchart TD
@@ -89,6 +99,7 @@ flowchart TD
     I --> J[処理完了]
     C -->|送金額が無効| K[エラー処理]
 ```
+
 ### submitLoanApplication関数のフローチャート
 ```mermaid
 flowchart TD
@@ -100,6 +111,7 @@ flowchart TD
     F --> G[処理完了]
     D -->|ユーザーがfrozen| H[エラー処理]
 ```
+
 ### voteToFreezeUser関数のフローチャート
 ```mermaid
 flowchart TD
@@ -114,6 +126,7 @@ flowchart TD
     F -->|51%未満| J[処理完了]
     D -->|未ステーク| K[エラー処理]
 ```
+
 ### freezeUser関数のフローチャート
 ```mermaid
 flowchart TD
@@ -124,6 +137,7 @@ flowchart TD
     E --> F[処理完了]
     C -->|既にfrozen| G[エラー処理]
 ```
+
 ### unfreezeUser関数のフローチャート
 ```mermaid
 flowchart TD
@@ -132,4 +146,31 @@ flowchart TD
     C --> D[対象ユーザーをunfreeze状態に設定]
     D --> E[処理完了]
     C -->|未frozen| F[エラー処理]
+```
+
+### stakeTokens関数のフローチャート
+```mermaid
+flowchart TD
+    A[stakeTokens関数の呼び出し] --> B[Reentrancy Guardのチェック]
+    B --> C[引数のバリデーション]
+    C --> D[送金元の残高確認]
+    D --> E[ステーキング処理]
+    E --> F[ステーキング情報の記録]
+    F --> G[ユーザーのステーキング残高更新]
+    G --> H[処理完了]
+    C -->|無効な引数| I[エラー処理]
+    D -->|残高不足| J[エラー処理]
+```
+
+### withdrawStake関数のフローチャート
+```mermaid
+flowchart TD
+    A[withdrawStake関数の呼び出し] --> B[Reentrancy Guardのチェック]
+    B --> C[ステーキング情報の確認]
+    C --> D[ステーキング期間の確認]
+    D --> E[ステークの引き出し処理]
+    E --> F[ユーザーのステーキング残高更新]
+    F --> G[処理完了]
+    C -->|無効なステークID| H[エラー処理]
+    D -->|期間未終了| I[エラー処理]
 ```

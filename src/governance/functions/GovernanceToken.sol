@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import "./Schema.sol";
 import "./Storage.sol";
 
-contract ERC20Functions {
+contract GovernanceToken {
     modifier nonReentrant() {
         Schema.GlobalState storage gs = Storage.state();
         require(!gs.initialized, "ReentrancyGuard: reentrant call");
@@ -58,22 +58,6 @@ contract ERC20Functions {
         gs.balances[recipient] += amount;
         gs.allowances[sender][msg.sender] -= amount;
 
-        // Update transaction record
-        uint transactionID = gs.transactionCounter++;
-        gs.transactions[transactionID] = Schema.Transaction({
-            transactionID: transactionID,
-            sender: sender,
-            receiver: recipient,
-            amount: amount,
-            timestamp: block.timestamp
-        });
-
-        // Update user status
-        gs.users[sender].isActive = true;
-
-        // Calculate credit score
-        gs.users[recipient].creditScore += calculateCreditScore(sender, amount);
-
         return true;
     }
 
@@ -85,39 +69,7 @@ contract ERC20Functions {
         gs.balances[msg.sender] -= amount;
         gs.balances[recipient] += amount;
 
-        // Update transaction record
-        uint transactionID = gs.transactionCounter++;
-        gs.transactions[transactionID] = Schema.Transaction({
-            transactionID: transactionID,
-            sender: msg.sender,
-            receiver: recipient,
-            amount: amount,
-            timestamp: block.timestamp
-        });
-
-        // Update user status
-        gs.users[msg.sender].isActive = true;
-
-        // Calculate credit score
-        gs.users[recipient].creditScore += calculateCreditScore(msg.sender, amount);
-
         return true;
     }
-
-    function calculateCreditScore(address sender, uint256 amount) internal view returns (uint256) {
-        Schema.GlobalState storage gs = Storage.state();
-        uint256 totalSentAmount = 0;
-        uint256 totalSenders = 0;
-
-        for (uint i = 0; i < gs.users[sender].transactionIDs.length; i++) {
-            Schema.Transaction storage tx = gs.transactions[gs.users[sender].transactionIDs[i]];
-            if (tx.receiver == sender) {
-                totalSentAmount += tx.amount;
-                totalSenders++;
-            }
-        }
-
-        uint256 averageSentAmount = totalSentAmount / totalSenders;
-        return (averageSentAmount * amount);
-    }
 }
+
