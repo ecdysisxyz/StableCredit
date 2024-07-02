@@ -1,4 +1,5 @@
-# StableCredit
+## StableCredit
+
 This repository contains the smart contracts for a decentralized lending protocol built on Ethereum. The protocol allows users to issue and transfer stablecoins, submit loan applications, and vote on freezing or unfreezing users. Governance tokens are used to facilitate the voting process, ensuring a decentralized decision-making mechanism.
 
 ## Overview
@@ -22,10 +23,10 @@ The protocol calculates credit scores based on transaction history, which influe
 ### Main Bundle
 
 #### Initializer.sol
-This contract initializes the protocol with the name, symbol, and decimals for the stablecoin.
+This contract initializes the protocol with the name, symbol, and decimals for the stablecoin. It also sets up the fee rate, minimum collateralization ratio, and integrates the PriceConsumer for fetching the latest ETH price.
 
-#### IssueStableCoin.sol
-This contract allows users to issue stablecoins by providing collateral. The stablecoins are minted and added to the user's balance.
+#### CDPOperations.sol
+This contract handles the core operations of the protocol, including deposit, borrow, repay, withdraw, redeem, and sweep functions. It also updates the priority registry based on the individual collateralization ratios.
 
 #### ERC20Functions.sol
 This contract provides the basic ERC-20 functions including transfer, approve, transferFrom, balanceOf, allowance, name, symbol, decimals, and totalSupply. Transfer and transferFrom also handle reputation data.
@@ -56,7 +57,7 @@ This contract initializes the governance token with the name, symbol, and decima
 ### Storage
 
 #### Schema.sol (Main Bundle)
-This library defines the data structures used by the main protocol, including user data, loan applications, transactions, freeze proposals, and unfreeze proposals.
+This library defines the data structures used by the main protocol, including user data, loan applications
 
 #### Storage.sol (Main Bundle)
 This library provides storage access for the main protocol's state.

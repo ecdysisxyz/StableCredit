@@ -70,20 +70,116 @@ erDiagram
     User ||--o{ Stake : stakes
 ```
 
-### issueStableCoin関数のフローチャート
+## CDPOperations.sol Functions Flowcharts
+
+### deposit Function
 ```mermaid
 flowchart TD
-    A[issueStableCoin関数の呼び出し] --> B[Reentrancy Guardのチェック]
-    B --> C[担保の承認確認_approve]
-    C --> D[担保の許可確認_allowance]
-    D --> E[担保の転送_transferFrom]
-    E --> F[引数のバリデーション]
-    F --> G[ユーザーの状態確認_isActive]
-    G --> H[ステーブルコインの発行]
-    H --> I[ユーザーのステーブルコイン残高更新]
-    I --> J[ガバナンストークンのfee分配]
-    J --> K[処理完了]
+    A[deposit Function Call] --> B[Check Reentrancy Guard]
+    B --> C[Validate Amount]
+    C --> D[Check ETH Sent]
+    D --> E[Update User Balance]
+    E --> F[Update Total Supply]
+    F --> G[Update Priority Registry]
+    G --> H[Process Completed]
 ```
+
+### borrow
+```mermaid
+flowchart TD
+    A[borrow Function Call] --> B[Check Reentrancy Guard]
+    B --> C[Validate Amount]
+    C --> D[Check User Status (isActive)]
+    D --> E[Transfer Collateral (ETH)]
+    E --> F[Get Latest ETH Price]
+    F --> G[Calculate Max Borrow Amount]
+    G --> H[Validate Collateral]
+    H --> I[Mint StableCoins]
+    I --> J[Update CDP]
+    J --> K[Update Priority Registry]
+    K --> L[Process Completed]
+```
+
+### repay
+```mermaid
+flowchart TD
+    A[repay Function Call] --> B[Check Reentrancy Guard]
+    B --> C[Validate Amount]
+    C --> D[Check User Balance]
+    D --> E[Update User Balance]
+    E --> F[Update Total Supply]
+    F --> G[Update CDP]
+    G --> H[Reward User]
+    H --> I[Update Credit Score]
+    I --> J[Update Priority Registry]
+    J --> K[Process Completed]
+```
+
+### withdraw
+```mermaid
+flowchart TD
+    A[withdraw Function Call] --> B[Check Reentrancy Guard]
+    B --> C[Validate Amount]
+    C --> D[Check User Balance]
+    D --> E[Update User Balance]
+    E --> F[Update Total Supply]
+    F --> G[Transfer ETH to User]
+    G --> H[Update Priority Registry]
+    H --> I[Process Completed]
+```
+
+### redeem
+```mermaid
+flowchart TD
+    A[redeem Function Call] --> B[Check Reentrancy Guard]
+    B --> C[Get Latest ETH Price]
+    C --> D[Initialize Remaining Amount and Total Collateral Redeemed]
+    D --> E[Iterate Through Priority Registry]
+    E --> F[Check Remaining Amount]
+    F --> G[Get User, Debt, and Collateral]
+    G --> H[Check Debt vs Remaining Amount]
+    H --> I[Update CDP and Collateral Redeemed]
+    I --> J[Check Remaining Amount]
+    J --> K[Break Loop if Remaining Amount is Zero]
+    K --> L[Transfer Collateral to Sender]
+    L --> M[Process Completed]
+```
+
+### sweep
+```mermaid
+flowchart TD
+    A[sweep Function Call] --> B[Check Reentrancy Guard]
+    B --> C[Get Latest ETH Price]
+    C --> D[Initialize Remaining Amount and Total Collateral Swept]
+    D --> E[Iterate Through Priority Registry]
+    E --> F[Check Remaining Amount]
+    F --> G[Get User, Debt, and Collateral]
+    G --> H[Check Debt vs Remaining Amount]
+    H --> I[Update CDP and Collateral Swept]
+    I --> J[Check Remaining Amount]
+    J --> K[Break Loop if Remaining Amount is Zero]
+    K --> L[Transfer Collateral to Sender]
+    L --> M[Process Completed]
+```
+
+## PriceConsumer
+### getLatestPrice
+```mermaid
+flowchart TD
+    A[getLatestPrice Function Call] --> B[Fetch Latest Round Data from ChainLink]
+    B --> C[Validate Price]
+    C --> D[Convert Price to 18 Decimals]
+    D --> E[Return Price]
+```
+### updateLastGoodPrice
+```mermaid
+flowchart TD
+    A[updateLastGoodPrice Function Call] --> B[Get Latest ETH Price]
+    B --> C[Validate Price]
+    C --> D[Update Last Good Price in State]
+    D --> E[Process Completed]
+```
+
 
 ### transfer関数のフローチャート
 ```mermaid

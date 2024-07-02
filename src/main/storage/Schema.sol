@@ -13,6 +13,8 @@ library Schema {
         mapping(uint => mapping(address => uint)) loanVotes; // Loan ID => (Voter => Vote Amount)
         mapping(uint => mapping(address => bool)) freezeVotes; // Freeze Proposal ID => (Voter => Voted)
         mapping(uint => mapping(address => bool)) unfreezeVotes; // Unfreeze Proposal ID => (Voter => Voted)
+        mapping(address => CDP) cdps; // CDP (collateral-debt position) の管理
+        mapping(uint => address[]) priorityRegistry; // ICR => address[]
         uint loanCounter;
         uint transactionCounter;
         uint freezeProposalCounter;
@@ -21,6 +23,9 @@ library Schema {
         uint totalCreditScore; // 全体の与信値の合計
         uint lendingPool; // レンディングプールのガバナンストークンの量
         uint feeRate;
+        uint lastGoodPrice; // 最新のETH価格
+        address priceFeed;
+        uint MINIMUM_COLLATERALIZATION_RATIO; // 最小担保率
         bool initialized;
         string name;
         string symbol;
@@ -76,6 +81,11 @@ library Schema {
         uint totalVotes;
         uint voteCount;
         bool isApproved;
+    }
+
+    struct CDP {
+        uint collateral;
+        uint debt;
     }
 }
 
