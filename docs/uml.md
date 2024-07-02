@@ -148,6 +148,31 @@ flowchart TD
     C -->|未frozen| F[エラー処理]
 ```
 
+### Lend.solの関数群のフローチャート
+```mermaid
+flowchart TD
+    A[mintNewGovernanceTokens関数の呼び出し] --> B[Reentrancy Guardのチェック]
+    B --> C[引数のバリデーション]
+    C --> D[プールへのトークン配分]
+    D --> E[ユーザーのバランス更新]
+    E --> F[処理完了]
+
+    A2[withdrawGovernanceTokens関数の呼び出し] --> B2[Reentrancy Guardのチェック]
+    B2 --> C2[ユーザーのシェア計算]
+    C2 --> D2[シェアに基づく引き出し可能額の確認]
+    D2 --> E2[プールからのトークン引き出し]
+    E2 --> F2[ユーザーのバランス更新]
+    F2 --> G2[処理完了]
+
+    A3[repayLoan関数の呼び出し] --> B3[Reentrancy Guardのチェック]
+    B3 --> C3[ローン情報の確認]
+    C3 --> D3[返済額の確認]
+    D3 --> E3[ローンステータスの更新]
+    E3 --> F3[報酬トークンの付与]
+    F3 --> G3[ユーザーの与信値更新]
+    G3 --> H3[処理完了]
+```
+
 ### stakeTokens関数のフローチャート
 ```mermaid
 flowchart TD

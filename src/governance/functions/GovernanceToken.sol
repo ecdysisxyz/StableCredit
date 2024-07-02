@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "./Schema.sol";
-import "./Storage.sol";
+import "../storage/Schema.sol";
+import "../storage/Storage.sol";
 
 contract GovernanceToken {
     modifier nonReentrant() {

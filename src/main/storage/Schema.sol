@@ -18,6 +18,8 @@ library Schema {
         uint freezeProposalCounter;
         uint unfreezeProposalCounter;
         uint totalSupply;
+        uint totalCreditScore; // 全体の与信値の合計
+        uint lendingPool; // レンディングプールのガバナンストークンの量
         uint feeRate;
         bool initialized;
         string name;

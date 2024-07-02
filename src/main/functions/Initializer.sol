@@ -13,7 +13,8 @@ contract Initializer {
         gs.name = _name;
         gs.symbol = _symbol;
         gs.decimals = _decimals;
+        gs.totalCreditScore = 0; // 初期値設定
+        gs.lendingPool = 0; // 初期値設定
         gs.initialized = false; // Reset flag after initialization
     }
 }
-
