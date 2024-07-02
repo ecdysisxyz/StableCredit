@@ -46,7 +46,7 @@ This library provides storage access for the protocol's state.
 The protocol is built using a modular architecture, where each functionality is encapsulated in a separate contract. This approach allows for easier maintenance and upgrades.
 
 # Diagrams
-For a detailed overview of the protocol's structure and flow, refer to the UML diagrams in ./docs/uml.md.
+For a detailed overview of the protocol's structure and flow, refer to the UML diagrams in [./docs/uml.md](./docs/uml.md).
 
 ---
 
