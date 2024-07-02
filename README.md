@@ -3,39 +3,41 @@ This repository contains the smart contracts for a decentralized lending protoco
 
 # Overview
 ## Features
-Stablecoin Issuance: Users can issue stablecoins by providing collateral.
-Loan Applications: Users can submit loan applications, which can be voted on by other users based on their transaction history.
-Voting Mechanism: Users with governance tokens can vote to freeze or unfreeze other users.
-Credit Scoring: The protocol calculates credit scores based on transaction history, which influences voting power.
-Contracts
-ERC20Functions.sol
-This contract provides the basic ERC-20 functions including transfer, approve, transferFrom, balanceOf, allowance, name, symbol, decimals, and totalSupply.
+### Stablecoin Issuance
+Users can issue stablecoins by providing collateral.
+### Loan Applications
+Users can submit loan applications, which can be voted on by other users based on their transaction history.
+### Voting Mechanism
+Users with governance tokens can vote to freeze or unfreeze other users.
+### Credit Scoring
+The protocol calculates credit scores based on transaction history, which influences voting power.
 
-Freeze.sol
-This contract allows staked users to propose and vote on freezing other users. If a user is frozen, the credit scores of users who transacted with the frozen user are reduced by 10%.
-
-GovernanceToken.sol
-This contract implements a governance token that can be staked to gain voting power. Users can vote to freeze or unfreeze other users.
-
-Initializer.sol
+# Contracts
+## Main Bundle
+### Initializer.sol
 This contract initializes the protocol with the name, symbol, and decimals for the stablecoin.
 
-IssueStableCoin.sol
+### IssueStableCoin.sol
 This contract allows users to issue stablecoins by providing collateral. The stablecoins are minted and added to the user's balance.
 
-LoanApplicationContract.sol
-This contract allows users to submit loan applications. Other users can vote on these applications based on their transaction history with the borrower.
-
-### StableCoin.sol
-This contract implements the stablecoin using the ERC-20 standard, with additional logic for issuing coins based on provided collateral.
-
-### SubmitLoanApplication.sol
-This contract handles the submission and voting process for loan applications. It calculates voting power based on past transaction amounts.
+### ERC20Functions.sol
+This contract provides the basic ERC-20 functions including transfer, approve, transferFrom, balanceOf, allowance, name, symbol, decimals, and totalSupply.
 
 ### Transfer.sol
 This contract handles the transfer of stablecoins between users, updating credit scores and recording transaction history.
 
-## Storage
+### Freeze.sol
+This contract allows staked users to propose and vote on freezing other users. If a user is frozen, the credit scores of users who transacted with the frozen user are reduced by 10%.
+
+### SubmitLoanApplication.sol
+This contract handles the submission and voting process for loan applications. It calculates voting power based on past transaction amounts.
+
+
+## Governance Token Bundle
+### GovernanceToken.sol
+This contract implements a governance token that can be staked to gain voting power. Users can vote to freeze or unfreeze other users.
+
+# Storage
 ### Schema.sol
 This library defines the data structures used by the protocol, including user data, loan applications, transactions, freeze proposals, and unfreeze proposals.
 
