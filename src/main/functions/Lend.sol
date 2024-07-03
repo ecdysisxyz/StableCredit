@@ -21,12 +21,72 @@ contract Lend {
         return GovernanceToken(gs.governanceTokenAddress);
     }
 
-    function mintNewGovernanceTokens(uint256 amount) external nonReentrant {
+    function proposeMint(uint256 amount) external nonReentrant {
+        Schema.GlobalState storage gs = Storage.state();
+        require(amount > 0, "Invalid amount");
+        require(gs.governanceTokenAddress != address(0), "Governance token not set");
+
+        uint256 proposalID = gs.mintProposalCounter++;
+        gs.mintProposals[proposalID] = Schema.MintProposal({
+            proposalID: proposalID,
+            proposer: msg.sender,
+            amount: amount,
+            votesFor: 0,
+            votesAgainst: 0,
+            executed: false
+        });
+
+        emit MintProposalCreated(proposalID, msg.sender, amount);
+    }
+
+    function mintVote(uint256 proposalID, bool support) external nonReentrant {
+        Schema.GlobalState storage gs = Storage.state();
+        require(proposalID < gs.mintProposalCounter, "Invalid proposal ID");
+        require(!gs.mintProposals[proposalID].executed, "Proposal already executed");
+
+        Schema.MintProposal storage proposal = gs.mintProposals[proposalID];
+        require(!proposal.voters[msg.sender], "Already voted");
+
+        uint256 votingPower = governanceToken().balanceOf(msg.sender);
+        require(votingPower > 0, "No voting power");
+
+        if (support) {
+            proposal.votesFor += votingPower;
+        } else {
+            proposal.votesAgainst += votingPower;
+        }
+
+        proposal.voters[msg.sender] = true;
+
+        emit MintVoteCast(proposalID, msg.sender, support, votingPower);
+    }
+
+    function tallyMintVotes(uint256 proposalID) external nonReentrant {
+        Schema.GlobalState storage gs = Storage.state();
+        require(proposalID < gs.mintProposalCounter, "Invalid proposal ID");
+
+        Schema.MintProposal storage proposal = gs.mintProposals[proposalID];
+        require(!proposal.executed, "Proposal already executed");
+
+        uint256 totalVotes = proposal.votesFor + proposal.votesAgainst;
+        require(totalVotes > 0, "No votes cast");
+
+        if (proposal.votesFor > proposal.votesAgainst) {
+            _mintNewGovernanceTokens(proposal.amount);
+            proposal.executed = true;
+            emit MintProposalExecuted(proposalID, proposal.amount);
+        } else {
+            proposal.executed = true;
+            emit MintProposalRejected(proposalID);
+        }
+    }
+
+    function _mintNewGovernanceTokens(uint256 amount) internal {
         Schema.GlobalState storage gs = Storage.state();
         require(amount > 0, "Invalid amount");
 
         // Mint ERC20 governance tokens
-        governanceToken().mint(msg.sender, amount);
+        governanceToken().mint(address(this), amount);
 
         uint256 poolAmount = (amount * 90) / 100;
         uint256 remainingAmount = amount - poolAmount;
@@ -34,8 +94,28 @@ contract Lend {
         gs.lendingPool += poolAmount;
         gs.totalSupply += amount;
 
-        // Reward pool tokens to lending pool
-        gs.balances[address(this)] += remainingAmount;
+        // Reward incentivised parties with 10%
+        uint256 rewardAmount = remainingAmount;
+        uint256 totalRepaid = 0;
+        uint256 totalEligibleUsers = 0;
+
+        // Calculate total repaid amount and count eligible users
+        for (uint i = 0; i < gs.usersList.length; i++) {
+            address userAddress = gs.usersList[i];
+            if (gs.users[userAddress].repaidWithinYear) {
+                totalRepaid += gs.users[userAddress].repaidAmount;
+                totalEligibleUsers++;
+            }
+        }
+
+        // Distribute rewards to eligible users
+        for (uint i = 0; i < gs.usersList.length; i++) {
+            address userAddress = gs.usersList[i];
+            if (gs.users[userAddress].repaidWithinYear) {
+                uint256 userReward = (gs.users[userAddress].repaidAmount * rewardAmount) / totalRepaid;
+                governanceToken().transfer(userAddress, userReward);
+            }
+        }
     }
 
     function proposeLoan(uint256 amount) external nonReentrant {
@@ -84,7 +164,7 @@ contract Lend {
         loan.voteCount++;
     }
 
-    function tallyVotes(uint loanID) external nonReentrant {
+    function tallyLoanVotes(uint loanID) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
         Schema.LoanApplication storage loan = gs.loanApplications[loanID];
 
@@ -137,6 +217,10 @@ contract Lend {
         governanceToken().transferFrom(msg.sender, address(this), totalRepayAmount);
 
         loan.status = "Repaid";
+
+        // Update repaid info
+        gs.users[msg.sender].repaidWithinYear = true; // Assuming this is set appropriately elsewhere
+        gs.users[msg.sender].repaidAmount += amount;
 
         // Reward logic here
         uint256 reward = (amount * 10) / 100;

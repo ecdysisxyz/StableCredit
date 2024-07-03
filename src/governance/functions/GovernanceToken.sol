@@ -71,5 +71,10 @@ contract GovernanceToken {
 
         return true;
     }
+
+    function stakedBalanceOf(address account) external view returns (uint256) {
+        Schema.GlobalState storage gs = Storage.state();
+        return gs.stakedBalances[account];
+    }
 }
 

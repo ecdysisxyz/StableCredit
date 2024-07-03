@@ -30,7 +30,7 @@ contract Stake {
             isWithdrawn: false
         });
 
-        gs.users[msg.sender].governanceTokensStaked += amount;
+        gs.stakedBalances[msg.sender] += amount;
     }
 
     function withdrawStake(uint stakeID) external nonReentrant {
@@ -44,7 +44,7 @@ contract Stake {
 
         stake.isWithdrawn = true;
         gs.balances[msg.sender] += stake.amount;
-        gs.users[msg.sender].governanceTokensStaked -= stake.amount;
+        gs.stakedBalances[msg.sender] -= stake.amount;
     }
 }
 

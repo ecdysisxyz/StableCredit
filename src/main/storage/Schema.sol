@@ -3,72 +3,64 @@ pragma solidity ^0.8.23;
 
 library Schema {
     struct GlobalState {
-        mapping(address => User) users;
-        mapping(uint => LoanApplication) loanApplications;
-        mapping(uint => Transaction) transactions;
-        mapping(uint => FreezeProposal) freezeProposals;
-        mapping(uint => UnfreezeProposal) unfreezeProposals;
-        mapping(address => uint) balances;
-        mapping(address => mapping(address => uint)) allowances;
-        mapping(uint => mapping(address => uint)) loanVotes; // Loan ID => (Voter => Vote Amount)
-        mapping(uint => mapping(address => bool)) freezeVotes; // Freeze Proposal ID => (Voter => Voted)
-        mapping(uint => mapping(address => bool)) unfreezeVotes; // Unfreeze Proposal ID => (Voter => Voted)
-        mapping(address => CDP) cdps; // CDP (collateral-debt position) の管理
-        mapping(uint => address[]) priorityRegistry; // ICR => address[]
-        uint loanCounter;
-        uint transactionCounter;
-        uint freezeProposalCounter;
-        uint unfreezeProposalCounter;
-        uint totalSupply;
-        uint totalCreditScore; // 全体の与信値の合計
-        uint lendingPool; // レンディングプールのガバナンストークンの量
-        uint feeRate;
-        uint lastGoodPrice; // 最新のETH価格
-        address priceFeed;
-        uint MINIMUM_COLLATERALIZATION_RATIO; // 最小担保率
         bool initialized;
         string name;
         string symbol;
         uint8 decimals;
+        address governanceTokenAddress;
+        uint256 feeRate;
+        uint256 lastGoodPrice;
+        uint256 MINIMUM_COLLATERALIZATION_RATIO;
+        uint256 totalCreditScore;
+        uint256 lendingPool;
+        uint256 totalSupply;
+        uint256 loanCounter;
+        uint256 mintProposalCounter;
+        mapping(address => User) users;
+        mapping(uint => LoanApplication) loanApplications;
+        mapping(uint => MintProposal) mintProposals;
+        mapping(address => uint256[]) usersList;
+        mapping(address => mapping(uint => bool)) loanVotes;
+        mapping(address => mapping(address => uint)) allowances;
     }
 
     struct User {
-        address userID;
-        uint creditScore;
-        bool isActive;
         bool isFrozen;
+        bool isActive;
         bool isStaked;
-        uint governanceTokensStaked;
-        uint[] loanApplicationIDs;
-        uint[] transactionIDs;
+        uint256 creditScore;
+        uint256[] loanApplicationIDs;
+        uint256[] transactionIDs;
+        bool repaidWithinYear;
+        uint256 repaidAmount;
     }
 
     struct LoanApplication {
         uint loanID;
         address borrower;
-        uint amount;
+        uint256 amount;
         string status;
-        uint fee;
-        uint totalVotes;
-        uint voteCount;
+        uint256 fee;
+        uint256 totalVotes;
+        uint256 voteCount;
     }
 
     struct Transaction {
         uint transactionID;
         address sender;
         address receiver;
-        uint amount;
-        uint timestamp;
+        uint256 amount;
+        uint256 timestamp;
     }
 
     struct FreezeProposal {
         uint proposalID;
         address proposedUser;
         address proposer;
-        uint startTime;
-        uint endTime;
-        uint totalVotes;
-        uint voteCount;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 totalVotes;
+        uint256 voteCount;
         bool isApproved;
     }
 
@@ -76,16 +68,20 @@ library Schema {
         uint proposalID;
         address proposedUser;
         address proposer;
-        uint startTime;
-        uint endTime;
-        uint totalVotes;
-        uint voteCount;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 totalVotes;
+        uint256 voteCount;
         bool isApproved;
     }
 
-    struct CDP {
-        uint collateral;
-        uint debt;
+    struct MintProposal {
+        uint proposalID;
+        address proposer;
+        uint256 amount;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        bool executed;
+        mapping(address => bool) voters;
     }
 }
-
