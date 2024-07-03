@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import "./Schema.sol";
 import "./Storage.sol";
 import "./PriceConsumer.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CDPOperations {
     modifier nonReentrant() {
@@ -14,12 +15,12 @@ contract CDPOperations {
         gs.initialized = false;
     }
 
-
-    function deposit(address user, uint256 amount) external payable nonReentrant {
+    function deposit(address user, uint256 amount) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
+        IERC20 collateralToken = IERC20(gs.collateralToken);
 
         require(amount > 0, "Invalid amount");
-        require(msg.value == amount, "Incorrect amount of ETH sent");
+        require(collateralToken.transferFrom(msg.sender, address(this), amount), "Collateral transfer failed");
 
         gs.balances[user] += amount;
         gs.totalSupply += amount;
@@ -27,33 +28,28 @@ contract CDPOperations {
         _updatePriorityRegistry(user);
     }
 
-    function borrow(address borrower, uint256 amount) external payable nonReentrant {
+    function borrow(address borrower, uint256 amount) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
 
         require(amount > 0, "Invalid amount");
         require(gs.users[borrower].isActive, "User is not active");
 
-        // Transfer collateral (ETH) to the contract
-        require(msg.value > 0, "Insufficient collateral");
-
-        uint ethPrice = PriceConsumer(address(this)).getLatestPrice();
+        IERC20 collateralToken = IERC20(gs.collateralToken);
+        uint256 collateral = collateralToken.balanceOf(address(this));
+        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
         require(ethPrice > 0, "Invalid price");
 
-        uint collateral = msg.value;
-        uint maxBorrow = (collateral * ethPrice) / (gs.MINIMUM_COLLATERALIZATION_RATIO * 1e18); // Ensure the MCR (130%) is applied
+        uint256 maxBorrow = (collateral * ethPrice) / (gs.MINIMUM_COLLATERALIZATION_RATIO * 1e18);
 
         require(amount <= maxBorrow, "Insufficient collateral");
 
-        // Mint StableCoin to the borrower
         gs.balances[borrower] += amount;
-        uint fee = (amount * gs.feeRate) / 1000;
+        uint256 fee = (amount * gs.feeRate) / 1000;
         gs.totalSupply += amount - fee;
 
-        // Update CDP
         gs.cdps[borrower].collateral += collateral;
         gs.cdps[borrower].debt += amount;
 
-        // Update Priority Registry
         _updatePriorityRegistry(borrower);
     }
 
@@ -67,17 +63,17 @@ contract CDPOperations {
         gs.totalSupply -= amount;
         gs.cdps[borrower].debt -= amount;
 
-        uint reward = (amount * 10) / 100;
+        uint256 reward = (amount * 10) / 100;
         gs.balances[borrower] += reward;
         gs.totalCreditScore += reward;
         gs.users[borrower].creditScore += reward;
 
-        // Update Priority Registry
         _updatePriorityRegistry(borrower);
     }
 
     function withdraw(address user, uint256 amount) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
+        IERC20 collateralToken = IERC20(gs.collateralToken);
 
         require(amount > 0, "Invalid amount");
         require(gs.balances[user] >= amount, "Insufficient balance");
@@ -85,32 +81,32 @@ contract CDPOperations {
         gs.balances[user] -= amount;
         gs.totalSupply -= amount;
 
-        payable(user).transfer(amount);
+        require(collateralToken.transfer(user, amount), "Collateral transfer failed");
 
-        // Update Priority Registry
         _updatePriorityRegistry(user);
     }
 
     function redeem(uint256 amount) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
-        uint ethPrice = PriceConsumer(address(this)).getLatestPrice();
+        IERC20 collateralToken = IERC20(gs.collateralToken);
+        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
         require(ethPrice > 0, "Invalid price");
 
-        uint remainingAmount = amount;
-        uint totalCollateralRedeemed = 0;
+        uint256 remainingAmount = amount;
+        uint256 totalCollateralRedeemed = 0;
 
-        for (uint i = 0; i < gs.priorityRegistry.length; i++) {
+        for (uint256 i = 0; i < gs.priorityRegistry.length; i++) {
             if (remainingAmount == 0) break;
-            uint ICR = gs.priorityRegistry[i];
+            uint256 ICR = gs.priorityRegistry[i];
 
-            for (uint j = 0; j < gs.priorityRegistry[ICR].length; j++) {
+            for (uint256 j = 0; j < gs.priorityRegistry[ICR].length; j++) {
                 address user = gs.priorityRegistry[ICR][j];
-                uint debt = gs.cdps[user].debt;
-                uint collateral = gs.cdps[user].collateral;
+                uint256 debt = gs.cdps[user].debt;
+                uint256 collateral = gs.cdps[user].collateral;
 
                 if (remainingAmount <= debt) {
                     gs.cdps[user].debt -= remainingAmount;
-                    uint collateralRedeemed = (remainingAmount * 1e18) / ethPrice;
+                    uint256 collateralRedeemed = (remainingAmount * 1e18) / ethPrice;
                     gs.cdps[user].collateral -= collateralRedeemed;
                     totalCollateralRedeemed += collateralRedeemed;
                     remainingAmount = 0;
@@ -125,31 +121,30 @@ contract CDPOperations {
         }
 
         require(remainingAmount == 0, "Insufficient debt to redeem");
-
-        // Transfer the redeemed collateral to the sender
-        payable(msg.sender).transfer(totalCollateralRedeemed);
+        require(collateralToken.transfer(msg.sender, totalCollateralRedeemed), "Collateral transfer failed");
     }
 
     function sweep(uint256 amount) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
-        uint ethPrice = PriceConsumer(address(this)).getLatestPrice();
+        IERC20 collateralToken = IERC20(gs.collateralToken);
+        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
         require(ethPrice > 0, "Invalid price");
 
-        uint remainingAmount = amount;
-        uint totalCollateralSwept = 0;
+        uint256 remainingAmount = amount;
+        uint256 totalCollateralSwept = 0;
 
-        for (uint i = 0; i < gs.priorityRegistry.length; i++) {
+        for (uint256 i = 0; i < gs.priorityRegistry.length; i++) {
             if (remainingAmount == 0) break;
-            uint ICR = gs.priorityRegistry[i];
+            uint256 ICR = gs.priorityRegistry[i];
 
-            for (uint j = 0; j < gs.priorityRegistry[ICR].length; j++) {
+            for (uint256 j = 0; j < gs.priorityRegistry[ICR].length; j++) {
                 address user = gs.priorityRegistry[ICR][j];
-                uint debt = gs.cdps[user].debt;
-                uint collateral = gs.cdps[user].collateral;
+                uint256 debt = gs.cdps[user].debt;
+                uint256 collateral = gs.cdps[user].collateral;
 
                 if (remainingAmount <= debt) {
                     gs.cdps[user].debt -= remainingAmount;
-                    uint collateralSwept = (remainingAmount * 1e18) / ethPrice;
+                    uint256 collateralSwept = (remainingAmount * 1e18) / ethPrice;
                     gs.cdps[user].collateral -= collateralSwept;
                     totalCollateralSwept += collateralSwept;
                     remainingAmount = 0;
@@ -164,22 +159,20 @@ contract CDPOperations {
         }
 
         require(remainingAmount == 0, "Insufficient debt to sweep");
-
-        // Transfer the swept collateral to the sender
-        payable(msg.sender).transfer(totalCollateralSwept);
+        require(collateralToken.transfer(msg.sender, totalCollateralSwept), "Collateral transfer failed");
     }
 
     function _updatePriorityRegistry(address user) internal {
         Schema.GlobalState storage gs = Storage.state();
-        uint ethPrice = PriceConsumer(address(this)).getLatestPrice();
-        uint debt = gs.cdps[user].debt;
-        uint collateral = gs.cdps[user].collateral;
+        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
+        uint256 debt = gs.cdps[user].debt;
+        uint256 collateral = gs.cdps[user].collateral;
 
         if (debt > 0 && collateral > 0) {
-            uint ICR = (collateral * ethPrice) / debt;
+            uint256 ICR = (collateral * ethPrice) / debt;
             gs.priorityRegistry[ICR].push(user);
         } else {
-            for (uint i = 0; i < gs.priorityRegistry[ICR].length; i++) {
+            for (uint256 i = 0; i < gs.priorityRegistry[ICR].length; i++) {
                 if (gs.priorityRegistry[ICR][i] == user) {
                     gs.priorityRegistry[ICR][i] = gs.priorityRegistry[ICR][gs.priorityRegistry[ICR].length - 1];
                     gs.priorityRegistry[ICR].pop();
@@ -189,4 +182,3 @@ contract CDPOperations {
         }
     }
 }
-

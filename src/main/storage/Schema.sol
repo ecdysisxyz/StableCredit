@@ -8,6 +8,7 @@ library Schema {
         string symbol;
         uint8 decimals;
         address governanceTokenAddress;
+        address collateralToken;
         uint256 feeRate;
         uint256 lastGoodPrice;
         uint256 MINIMUM_COLLATERALIZATION_RATIO;
@@ -17,11 +18,13 @@ library Schema {
         uint256 loanCounter;
         uint256 mintProposalCounter;
         mapping(address => User) users;
-        mapping(uint => LoanApplication) loanApplications;
-        mapping(uint => MintProposal) mintProposals;
-        mapping(address => uint256[]) usersList;
-        mapping(address => mapping(uint => bool)) loanVotes;
-        mapping(address => mapping(address => uint)) allowances;
+        mapping(address => CDP) cdps;
+        mapping(uint256 => LoanApplication) loanApplications;
+        mapping(uint256 => MintProposal) mintProposals;
+        address[] priorityRegistry;
+        mapping(uint256 => mapping(address => bool)) loanVotes;
+        mapping(address => mapping(address => uint256)) allowances;
+        address priceFeed;
     }
 
     struct User {
@@ -35,8 +38,13 @@ library Schema {
         uint256 repaidAmount;
     }
 
+    struct CDP {
+        uint256 collateral;
+        uint256 debt;
+    }
+
     struct LoanApplication {
-        uint loanID;
+        uint256 loanID;
         address borrower;
         uint256 amount;
         string status;
@@ -46,7 +54,7 @@ library Schema {
     }
 
     struct Transaction {
-        uint transactionID;
+        uint256 transactionID;
         address sender;
         address receiver;
         uint256 amount;
@@ -54,7 +62,7 @@ library Schema {
     }
 
     struct FreezeProposal {
-        uint proposalID;
+        uint256 proposalID;
         address proposedUser;
         address proposer;
         uint256 startTime;
@@ -65,7 +73,7 @@ library Schema {
     }
 
     struct UnfreezeProposal {
-        uint proposalID;
+        uint256 proposalID;
         address proposedUser;
         address proposer;
         uint256 startTime;
@@ -76,7 +84,7 @@ library Schema {
     }
 
     struct MintProposal {
-        uint proposalID;
+        uint256 proposalID;
         address proposer;
         uint256 amount;
         uint256 votesFor;

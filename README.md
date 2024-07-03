@@ -1,6 +1,6 @@
 ## StableCredit
 
-This repository contains the smart contracts for a decentralized lending protocol built on Ethereum. The protocol allows users to issue and transfer stablecoins, submit loan applications, and vote on freezing or unfreezing users. Governance tokens facilitate the voting process, ensuring a decentralized decision-making mechanism.
+This repository contains the smart contracts for a decentralized lending protocol built on Ethereum. The protocol allows users to issue and transfer stablecoins, submit loan applications, and vote on freezing or unfreezing users. Governance tokens facilitate the voting process, ensuring a decentralized decision-making mechanism. Additionally, the protocol's factory design allows for the creation of diverse credit economies by specifying different collateral tokens and their respective minimum collateralization ratios (MCP) and oracle feeds.
 
 ## Overview
 
@@ -18,21 +18,24 @@ Users with governance tokens can vote to freeze or unfreeze other users.
 #### Credit Scoring
 The protocol calculates credit scores based on transaction history, which influences voting power.
 
+#### Factory Design
+The protocol can generate multiple instances of lending systems with different collateral tokens, MCPs, and price oracles through the factory mechanism.
+
 ## User Perspectives
 
 ### General User
 - **Functionality:** Can deposit, borrow, repay, and withdraw funds.
-- **Stablecoin Issuance:** Issue stablecoins by providing ETH as collateral.
+- **Stablecoin Issuance:** Issue stablecoins by providing a specified ERC-20 token as collateral.
 - **Loan Application:** Apply for loans based on credit score.
 
 ### Voting-Eligible User
-- **Functionality:** Can vote on loan applications, unfreeze proposals.
+- **Functionality:** Can vote on loan applications and unfreeze proposals.
 - **Voting Power:** Determined by transaction history.
 - **Loan Votes:** Participate in voting for or against loan applications.
 - **Unfreeze Votes:** Vote to unfreeze users based on community consensus.
 
 ### Voting-Eligible Super User
-- **Functionality:** Can propose governance token mint for lending pool procurement/reward and freeze actions, and vote on them.
+- **Functionality:** Can propose governance token minting for lending pool procurement/reward and freeze actions, and vote on them.
 - **Staking:** Stake governance tokens to gain voting power and participate in governance.
 - **Mint Votes:** Initiate proposals to mint governance tokens and can vote.
 - **Freeze Votes:** Initiate proposals to freeze users and can vote.
@@ -48,7 +51,7 @@ The protocol calculates credit scores based on transaction history, which influe
 
 #### Initializer.sol
 - **Purpose:** Initializes the protocol with the stablecoin's name, symbol, and decimals.
-- **Setup:** Configures the fee rate, minimum collateralization ratio, and integrates the PriceConsumer for fetching the latest ETH price.
+- **Setup:** Configures the fee rate, collateral token, minimum collateralization ratio, and integrates the PriceConsumer for fetching the latest price.
 
 #### CDPOperations.sol
 - **Purpose:** Handles core operations including deposit, borrow, repay, withdraw, redeem, and sweep functions.
