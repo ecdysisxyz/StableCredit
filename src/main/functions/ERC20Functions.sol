@@ -12,7 +12,6 @@ contract ERC20Functions {
         _;
         gs.initialized = false;
     }
-
     function name() external view returns (string memory) {
         Schema.GlobalState storage gs = Storage.state();
         return gs.name;

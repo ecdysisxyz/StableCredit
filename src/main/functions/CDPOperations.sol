@@ -36,18 +36,17 @@ contract CDPOperations {
 
         IERC20 collateralToken = IERC20(gs.collateralToken);
         uint256 collateral = collateralToken.balanceOf(address(this));
-        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
-        require(ethPrice > 0, "Invalid price");
+        uint256 collateralPrice = PriceConsumer(address(this)).getLatestPrice();
+        require(collateralPrice > 0, "Invalid price");
 
-        uint256 maxBorrow = (collateral * ethPrice) / (gs.MINIMUM_COLLATERALIZATION_RATIO * 1e18);
+        uint256 maxBorrow = (collateral * collateralPrice) / (gs.MINIMUM_COLLATERALIZATION_RATIO * 1e18);
 
         require(amount <= maxBorrow, "Insufficient collateral");
 
+        // effectively this is the minting
         gs.balances[borrower] += amount;
-        uint256 fee = (amount * gs.feeRate) / 1000;
-        gs.totalSupply += amount - fee;
+        gs.totalSupply += amount;
 
-        gs.cdps[borrower].collateral += collateral;
         gs.cdps[borrower].debt += amount;
 
         _updatePriorityRegistry(borrower);
@@ -89,8 +88,8 @@ contract CDPOperations {
     function redeem(uint256 amount) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
         IERC20 collateralToken = IERC20(gs.collateralToken);
-        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
-        require(ethPrice > 0, "Invalid price");
+        uint256 collateralPrice = PriceConsumer(address(this)).getLatestPrice();
+        require(collateralPrice > 0, "Invalid price");
 
         uint256 remainingAmount = amount;
         uint256 totalCollateralRedeemed = 0;
@@ -106,7 +105,7 @@ contract CDPOperations {
 
                 if (remainingAmount <= debt) {
                     gs.cdps[user].debt -= remainingAmount;
-                    uint256 collateralRedeemed = (remainingAmount * 1e18) / ethPrice;
+                    uint256 collateralRedeemed = (remainingAmount * 1e18) / collateralPrice;
                     gs.cdps[user].collateral -= collateralRedeemed;
                     totalCollateralRedeemed += collateralRedeemed;
                     remainingAmount = 0;
