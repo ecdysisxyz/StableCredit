@@ -1,6 +1,6 @@
 ## StableCredit
 
-This repository contains the smart contracts for a decentralized lending protocol built on Ethereum. The protocol allows users to issue and transfer stablecoins, submit loan applications, and vote on freezing or unfreezing users. Governance tokens are used to facilitate the voting process, ensuring a decentralized decision-making mechanism.
+This repository contains the smart contracts for a decentralized lending protocol built on Ethereum. The protocol allows users to issue and transfer stablecoins, submit loan applications, and vote on freezing or unfreezing users. Governance tokens facilitate the voting process, ensuring a decentralized decision-making mechanism.
 
 ## Overview
 
@@ -10,7 +10,7 @@ This repository contains the smart contracts for a decentralized lending protoco
 Users can issue stablecoins by providing collateral.
 
 #### Loan Applications
-Users can submit loan applications, which can be voted on by other users based on their transaction history.
+Users can submit loan applications, which other users can vote on based on their transaction history.
 
 #### Voting Mechanism
 Users with governance tokens can vote to freeze or unfreeze other users.
@@ -18,55 +18,89 @@ Users with governance tokens can vote to freeze or unfreeze other users.
 #### Credit Scoring
 The protocol calculates credit scores based on transaction history, which influences voting power.
 
+## User Perspectives
+
+### General User
+- **Functionality:** Can deposit, borrow, repay, and withdraw funds.
+- **Stablecoin Issuance:** Issue stablecoins by providing ETH as collateral.
+- **Loan Application:** Apply for loans based on credit score.
+
+### Voting-Eligible User
+- **Functionality:** Can vote on loan applications, unfreeze proposals.
+- **Voting Power:** Determined by transaction history.
+- **Loan Votes:** Participate in voting for or against loan applications.
+- **Unfreeze Votes:** Vote to unfreeze users based on community consensus.
+
+### Voting-Eligible Super User
+- **Functionality:** Can propose governance token mint for lending pool procurement/reward and freeze actions, and vote on them.
+- **Staking:** Stake governance tokens to gain voting power and participate in governance.
+- **Mint Votes:** Initiate proposals to mint governance tokens and can vote.
+- **Freeze Votes:** Initiate proposals to freeze users and can vote.
+
+### Incentivized User
+- **Functionality:** Eligible for rewards based on timely loan repayments.
+- **Rewards:** Receive additional governance tokens for successful and timely loan repayments.
+- **Credit Score Improvement:** Boost credit score through timely repayments.
+
 ## Contracts
 
 ### Main Bundle
 
 #### Initializer.sol
-This contract initializes the protocol with the name, symbol, and decimals for the stablecoin. It also sets up the fee rate, minimum collateralization ratio, and integrates the PriceConsumer for fetching the latest ETH price.
+- **Purpose:** Initializes the protocol with the stablecoin's name, symbol, and decimals.
+- **Setup:** Configures the fee rate, minimum collateralization ratio, and integrates the PriceConsumer for fetching the latest ETH price.
 
 #### CDPOperations.sol
-This contract handles the core operations of the protocol, including deposit, borrow, repay, withdraw, redeem, and sweep functions. It also updates the priority registry based on the individual collateralization ratios.
+- **Purpose:** Handles core operations including deposit, borrow, repay, withdraw, redeem, and sweep functions.
+- **Functionality:** Manages individual collateralization ratios and updates the priority registry.
 
 #### ERC20Functions.sol
-This contract provides the basic ERC-20 functions including transfer, approve, transferFrom, balanceOf, allowance, name, symbol, decimals, and totalSupply. Transfer and transferFrom also handle reputation data.
+- **Purpose:** Provides basic ERC-20 functions like transfer, approve, transferFrom, balanceOf, allowance, name, symbol, decimals, and totalSupply.
+- **Additional Features:** Integrates reputation data handling in transfer and transferFrom functions.
 
 #### Freeze.sol
-This contract allows staked users to propose and vote on freezing other users. If a user is frozen, the credit scores of users who transacted with the frozen user are reduced by 10%.
+- **Purpose:** Allows staked users to propose and vote on freezing other users.
+- **Impact:** Freezing a user reduces the credit scores of users who transacted with them by 10%.
 
 #### SubmitLoanApplication.sol
-This contract handles the submission and voting process for loan applications. It calculates voting power based on past transaction amounts.
+- **Purpose:** Manages the submission and voting process for loan applications.
+- **Voting Power Calculation:** Based on past transaction amounts.
 
 #### Unfreeze.sol
-This contract allows staked users to propose and vote on unfreezing frozen users.
+- **Purpose:** Allows staked users to propose and vote on unfreezing frozen users.
 
 #### Lend.sol
-This contract manages the lending pool, allowing users to mint new governance tokens and withdraw based on their share of the total credit score. It also handles loan repayment and rewards users for successful repayments.
+- **Purpose:** Manages the lending pool, minting new governance tokens, and user withdrawals based on credit scores.
+- **Loan Repayment:** Handles loan repayments and rewards users for successful repayments.
 
 ### Governance Token Bundle
 
 #### GovernanceToken.sol
-This contract implements a governance token that can be staked to gain voting power. Users can vote to freeze or unfreeze other users.
+- **Purpose:** Implements a governance token that can be staked to gain voting power.
+- **Voting:** Users can vote to freeze or unfreeze other users.
 
 #### Stake.sol
-This contract allows users to stake their governance tokens for a period of 4 years.
+- **Purpose:** Allows users to stake their governance tokens for a period of 4 years.
+- **Staking Benefits:** Increases voting power and participation in governance.
 
 #### Initializer.sol
-This contract initializes the governance token with the name, symbol, and decimals.
+- **Purpose:** Initializes the governance token with the name, symbol, and decimals.
 
 ### Storage
 
 #### Schema.sol (Main Bundle)
-This library defines the data structures used by the main protocol, including user data, loan applications
+- **Purpose:** Defines data structures used by the main protocol.
+- **Data Types:** User data, loan applications, mint proposals.
 
 #### Storage.sol (Main Bundle)
-This library provides storage access for the main protocol's state.
+- **Purpose:** Provides storage access for the main protocol's state.
 
 #### Schema.sol (Governance Bundle)
-This library defines the data structures used by the governance protocol, including balances, allowances, staked balances, voting power, and votes.
+- **Purpose:** Defines data structures used by the governance protocol.
+- **Data Types:** Balances, allowances, staked balances, voting power, votes.
 
 #### Storage.sol (Governance Bundle)
-This library provides storage access for the governance protocol's state.
+- **Purpose:** Provides storage access for the governance protocol's state.
 
 ## Architecture
 The protocol is built using a modular architecture, where each functionality is encapsulated in a separate contract. This approach allows for easier maintenance and upgrades.
@@ -77,10 +111,11 @@ For a detailed overview of the protocol's structure and flow, refer to the UML d
 ---
 
 # Meta Contract Template
+
 Welcome to the Meta Contract Template! This template is your fast track to smart contract development, offering a pre-configured setup with the [Meta Contract](https://github.com/metacontract/mc) framework and essential tools like the [ERC-7201 Storage Location Calculator](https://github.com/metacontract/erc7201). It's designed for developers looking to leverage advanced features and best practices right from the start.
 
 ## Quick Start
 Ensure you have [Foundry](https://github.com/foundry-rs/foundry) installed, then initialize your project with:
 ```sh
 $ forge init <Your Project Name> -t metacontract/template
-
+```
