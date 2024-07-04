@@ -126,8 +126,8 @@ contract CDPOperations {
     function sweep(uint256 amount) external nonReentrant {
         Schema.GlobalState storage gs = Storage.state();
         IERC20 collateralToken = IERC20(gs.collateralToken);
-        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
-        require(ethPrice > 0, "Invalid price");
+        uint256 collateralPrice = PriceConsumer(address(this)).getLatestPrice();
+        require(collateralPrice > 0, "Invalid price");
 
         uint256 remainingAmount = amount;
         uint256 totalCollateralSwept = 0;
@@ -143,7 +143,7 @@ contract CDPOperations {
 
                 if (remainingAmount <= debt) {
                     gs.cdps[user].debt -= remainingAmount;
-                    uint256 collateralSwept = (remainingAmount * 1e18) / ethPrice;
+                    uint256 collateralSwept = (remainingAmount * 1e18) / collateralPrice;
                     gs.cdps[user].collateral -= collateralSwept;
                     totalCollateralSwept += collateralSwept;
                     remainingAmount = 0;
@@ -163,12 +163,12 @@ contract CDPOperations {
 
     function _updatePriorityRegistry(address user) internal {
         Schema.GlobalState storage gs = Storage.state();
-        uint256 ethPrice = PriceConsumer(address(this)).getLatestPrice();
+        uint256 collateralPrice = PriceConsumer(address(this)).getLatestPrice();
         uint256 debt = gs.cdps[user].debt;
         uint256 collateral = gs.cdps[user].collateral;
 
         if (debt > 0 && collateral > 0) {
-            uint256 ICR = (collateral * ethPrice) / debt;
+            uint256 ICR = (collateral * collateralPrice) / debt;
             gs.priorityRegistry[ICR].push(user);
         } else {
             for (uint256 i = 0; i < gs.priorityRegistry[ICR].length; i++) {
