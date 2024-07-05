@@ -4,7 +4,8 @@ pragma solidity ^0.8.23;
 import {Schema} from "./Schema.sol";
 
 library Storage {
-    function CounterState() internal pure returns(Schema.$CounterState storage ref) {
-        assembly { ref.slot := 0x9d2213992402928855512c8ba65338877a8da4519b1df3203c2a2647166a8d00 }
+    // cast index-erc7201 ecdysisxyz.stablecredit.globalstate
+    function state() internal pure returns(Schema.GlobalState storage s) {
+        assembly { s.slot := 0xe63abce30f82cf4101277e24ae079dd2523ff194d38cd21ed39e733d7a400a00 }
     }
 }
