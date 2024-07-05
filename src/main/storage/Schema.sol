@@ -4,17 +4,13 @@ pragma solidity ^0.8.23;
 library Schema {
     struct GlobalState {
         bool initialized;
-        string name;
-        string symbol;
-        uint8 decimals;
         address governanceTokenAddress;
         address collateralToken;
         uint256 feeRate;
         uint256 lastGoodPrice;
-        uint256 MINIMUM_COLLATERALIZATION_RATIO;
+        uint256 minimumCollateralizationRatio;
         uint256 totalCreditScore;
         uint256 lendingPool;
-        uint256 totalSupply;
         uint256 loanCounter;
         uint256 mintProposalCounter;
         mapping(address => User) users;
@@ -23,7 +19,9 @@ library Schema {
         mapping(uint256 => MintProposal) mintProposals;
         address[] priorityRegistry;
         mapping(uint256 => mapping(address => bool)) loanVotes;
-        mapping(address => mapping(address => uint256)) allowances;
+        mapping(uint256 => Transaction) transactions;
+        mapping(address => uint256[]) transactionIDs;
+        uint256 transactionCounter;
         address priceFeed;
     }
 
@@ -33,7 +31,6 @@ library Schema {
         bool isStaked;
         uint256 creditScore;
         uint256[] loanApplicationIDs;
-        uint256[] transactionIDs;
         bool repaidWithinYear;
         uint256 repaidAmount;
     }

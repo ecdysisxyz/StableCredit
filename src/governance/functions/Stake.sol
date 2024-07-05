@@ -1,27 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "./Schema.sol";
-import "./Storage.sol";
+import "../storage/Schema.sol";
+import "../storage/Storage.sol";
 
 contract Stake {
     modifier nonReentrant() {
-        Schema.GlobalState storage gs = Storage.state();
-        require(!gs.initialized, "ReentrancyGuard: reentrant call");
-        gs.initialized = true;
+        Schema.GlobalState storage $s = Storage.state();
+        require(!$s.initialized, "ReentrancyGuard: reentrant call");
+        $s.initialized = true;
         _;
-        gs.initialized = false;
+        $s.initialized = false;
     }
 
     function stakeTokens(uint256 amount) external nonReentrant {
-        Schema.GlobalState storage gs = Storage.state();
+        Schema.GlobalState storage $s = Storage.state();
         require(amount > 0, "Invalid amount");
-        require(gs.balances[msg.sender] >= amount, "Insufficient balance");
+        require($s.balances[msg.sender] >= amount, "Insufficient balance");
 
-        gs.balances[msg.sender] -= amount;
+        $s.balances[msg.sender] -= amount;
 
-        uint stakeID = gs.stakeCounter++;
-        gs.stakes[stakeID] = Schema.Stake({
+        uint stakeID = $s.stakeCounter++;
+        $s.stakes[stakeID] = Schema.Stake({
             stakeID: stakeID,
             staker: msg.sender,
             amount: amount,
@@ -30,12 +30,12 @@ contract Stake {
             isWithdrawn: false
         });
 
-        gs.stakedBalances[msg.sender] += amount;
+        $s.stakedBalances[msg.sender] += amount;
     }
 
     function withdrawStake(uint stakeID) external nonReentrant {
-        Schema.GlobalState storage gs = Storage.state();
-        Schema.Stake storage stake = gs.stakes[stakeID];
+        Schema.GlobalState storage $s = Storage.state();
+        Schema.Stake storage stake = $s.stakes[stakeID];
 
         require(stake.stakeID == stakeID, "Invalid stake ID");
         require(stake.staker == msg.sender, "Not the staker");
@@ -43,8 +43,8 @@ contract Stake {
         require(block.timestamp >= stake.endTime, "Stake period not ended");
 
         stake.isWithdrawn = true;
-        gs.balances[msg.sender] += stake.amount;
-        gs.stakedBalances[msg.sender] -= stake.amount;
+        $s.balances[msg.sender] += stake.amount;
+        $s.stakedBalances[msg.sender] -= stake.amount;
     }
 }
 

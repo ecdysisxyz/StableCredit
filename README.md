@@ -49,15 +49,15 @@ The protocol can generate multiple instances of lending systems with different c
 
 ### Main Bundle
 
-#### Initializer.sol
+#### Initialize.sol
 - **Purpose:** Initializes the protocol with the stablecoin's name, symbol, and decimals.
 - **Setup:** Configures the fee rate, collateral token, minimum collateralization ratio, and integrates the PriceConsumer for fetching the latest price.
 
-#### CDPOperations.sol
+#### CDP.sol
 - **Purpose:** Handles core operations including deposit, borrow, repay, withdraw, redeem, and sweep functions.
 - **Functionality:** Manages individual collateralization ratios and updates the priority registry.
 
-#### ERC20Functions.sol
+#### Stablecoin.sol
 - **Purpose:** Provides basic ERC-20 functions like transfer, approve, transferFrom, balanceOf, allowance, name, symbol, decimals, and totalSupply.
 - **Additional Features:** Integrates reputation data handling in transfer and transferFrom functions.
 
@@ -86,7 +86,7 @@ The protocol can generate multiple instances of lending systems with different c
 - **Purpose:** Allows users to stake their governance tokens for a period of 4 years.
 - **Staking Benefits:** Increases voting power and participation in governance.
 
-#### Initializer.sol
+#### Initialize.sol
 - **Purpose:** Initializes the governance token with the name, symbol, and decimals.
 
 ### Storage
